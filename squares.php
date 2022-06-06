@@ -1,43 +1,47 @@
 <?php
 
-define("MATRIX" , convertFileToArray("input.txt"));
+define("MATRIX" , convertFileToArray("./input.txt"));
+$testArray = MATRIX;
 define("VOWELS" , ["A","E","I","O","U"]);
-$square[] = "";
 
 function convertFileToArray($file)
 {
-    $array = file_get_contents($file);
-    $array = explode("\n", $array);
+    $array = explode("\n", file_get_contents($file));
+    foreach ($array as $row => $str) {
+        $array[$row] = str_split($str);
+    } 
     return $array;
 }
 
-function compareArray(&$square)
+function ditchConsonants(&$letter)
 {
-    foreach (MATRIX as $row) {
-        $strHits = "";
-        for ($i = 0; $i < strlen($row) - 1; $i++) {
-            foreach (VOWELS as $vowel) {
-                if ($row[$i] == $vowel) {
-                    $strHits .= $row[$i];
-                }
-            }
-        }
-        array_push($square, $strHits);
-    }
-    print_r($square);
-}
-
-function isSquare($square)
-{
-    echo ("Vierkanten gevonden op: " . PHP_EOL);
-    foreach ($square as $row) {
-        if ($row[$i][$l] == $square[$i + 1][0]) { 
-            echo ($square[$i][0] . ": (" . $square[$i][1] . "," . $i . ")" . PHP_EOL);
-        }
+    if (!in_array($letter, VOWELS)) {
+        $letter = '';
     }
 }
 
-print_r(MATRIX);
-compareArray($square);
-// isSquare($square);
+function analyzeArray($array)
+{
+    foreach ($array as $rowNum => $letters) {
+        foreach ($letters as $letter) {
+        }
+    }
+    return $results;
+}
+
+function printResults($results)
+{
+    foreach ($results as $pos => $letter) {
+        echo "Match at ($pos) - $letter" . PHP_EOL;
+    }
+}
+
+array_walk_recursive($testArray, 'ditchConsonants');
+
+foreach ($testArray as $row => $letter) {
+    var_dump(array_filter($letter)); 
+}
+
+
+// printResults(analyzeArray());
 
