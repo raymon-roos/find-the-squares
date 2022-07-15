@@ -1,4 +1,4 @@
-#Where's the Square? 
+# Where's the Square? 
 
 IP Of Bit Academy Amsterdam, all rights reserved, for private use only 
 
