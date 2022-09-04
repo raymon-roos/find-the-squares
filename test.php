@@ -58,12 +58,12 @@ function findBlock($x, $y, $letter)
                 $letter . 
                 MATRIX[$y][$x + $width] .
                 MATRIX[$y + $height][$x + $width] . 
-                MATRIX[$y + $height][$x + $width]
+                MATRIX[$y + $height][$x]
             );
             if (substr_count($combined, $letter) >= 4) { 
                 echo $combined . PHP_EOL;
                 $results[] = "($x,$y) : $letter";
-                return $results;
+                    return $results;
             }
         } else {
             $square = false;
