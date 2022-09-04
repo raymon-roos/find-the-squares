@@ -1,43 +1,50 @@
 <?php
 
-define("MATRIX" , convertFileToArray("input.txt"));
+define("MATRIX" , convertFileToArray("./input.txt"));
 define("VOWELS" , ["A","E","I","O","U"]);
-$square[] = "";
 
 function convertFileToArray($file)
 {
-    $array = file_get_contents($file);
-    $array = explode("\n", $array);
+    $array = explode("\n", file_get_contents($file));
+    foreach ($array as $row => $str) {
+        $array[$row] = str_split($str);
+    } 
     return $array;
 }
 
-function compareArray(&$square)
+function traverse(): void
 {
-    foreach (MATRIX as $row) {
-        $strHits = "";
-        for ($i = 0; $i < strlen($row) - 1; $i++) {
-            foreach (VOWELS as $vowel) {
-                if ($row[$i] == $vowel) {
-                    $strHits .= $row[$i];
+    $row = 0; 
+    while ($row < count(MATRIX) - 1) { 
+        echo(MATRIX[$row] . PHP_EOL);
+        $col = 0; 
+        while ($col < count(MATRIX[$row]) - 1) { 
+            echo(MATRIX[$row][$col] . ' ');
+
+            if (isVowel(MATRIX[$row][$col])) {
+                if (compareAhead($row, $col)) {
+                    $col++;
+                } elseif (compareDown($row, $col)) {
+                    $row++;
                 }
             }
         }
-        array_push($square, $strHits);
     }
-    print_r($square);
 }
 
-function isSquare($square)
+function isVowel(string $letter): bool
 {
-    echo ("Vierkanten gevonden op: " . PHP_EOL);
-    foreach ($square as $row) {
-        if ($row[$i][$l] == $square[$i + 1][0]) { 
-            echo ($square[$i][0] . ": (" . $square[$i][1] . "," . $i . ")" . PHP_EOL);
-        }
-    }
+    return in_array($letter, VOWELS);
 }
 
-print_r(MATRIX);
-compareArray($square);
-// isSquare($square);
+function compareAhead(int $row, int $col)
+{
+    return MATRIX[$row][$col] == MATRIX[$row][$col + 1];
+}
 
+function compareDown(int $row, int $col)
+{
+    return MATRIX[$row][$col] == MATRIX[$row + 1][$col];
+}
+
+traverse();
