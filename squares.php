@@ -1,7 +1,6 @@
 <?php
 
 define("MATRIX" , convertFileToArray("./input.txt"));
-$testArray = MATRIX;
 define("VOWELS" , ["A","E","I","O","U"]);
 
 function convertFileToArray($file)
@@ -13,35 +12,39 @@ function convertFileToArray($file)
     return $array;
 }
 
-function ditchConsonants(&$letter)
+function traverse(): void
 {
-    if (!in_array($letter, VOWELS)) {
-        $letter = '';
-    }
-}
+    $row = 0; 
+    while ($row < count(MATRIX) - 1) { 
+        echo(MATRIX[$row] . PHP_EOL);
+        $col = 0; 
+        while ($col < count(MATRIX[$row]) - 1) { 
+            echo(MATRIX[$row][$col] . ' ');
 
-function analyzeArray($array)
-{
-    foreach ($array as $rowNum => $letters) {
-        foreach ($letters as $letter) {
+            if (isVowel(MATRIX[$row][$col])) {
+                if (compareAhead($row, $col)) {
+                    $col++;
+                } elseif (compareDown($row, $col)) {
+                    $row++;
+                }
+            }
         }
     }
-    return $results;
 }
 
-function printResults($results)
+function isVowel(string $letter): bool
 {
-    foreach ($results as $pos => $letter) {
-        echo "Match at ($pos) - $letter" . PHP_EOL;
-    }
+    return in_array($letter, VOWELS);
 }
 
-array_walk_recursive($testArray, 'ditchConsonants');
-
-foreach ($testArray as $row => $letter) {
-    var_dump(array_filter($letter)); 
+function compareAhead(int $row, int $col)
+{
+    return MATRIX[$row][$col] == MATRIX[$row][$col + 1];
 }
 
+function compareDown(int $row, int $col)
+{
+    return MATRIX[$row][$col] == MATRIX[$row + 1][$col];
+}
 
-// printResults(analyzeArray());
-
+traverse();
