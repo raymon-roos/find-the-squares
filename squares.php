@@ -1,35 +1,61 @@
 <?php
 
-define("MATRIX" , convertFileToArray("./input.txt"));
-define("VOWELS" , ["A","E","I","O","U"]);
+declare(strict_types=1);
 
-function convertFileToArray($file)
+define('MATRIX' , convertFileToArray('./input.txt'));
+define('VOWELS' , ['A','E','I','O','U']);
+
+function convertFileToArray(string $fileName): array
 {
-    $array = explode("\n", file_get_contents($file));
-    foreach ($array as $row => $str) {
-        $array[$row] = str_split($str);
+    $arrayFromFile = explode("\n", file_get_contents($fileName));
+    foreach ($arrayFromFile as $row => $str) {
+        $arrayFromFile[$row] = str_split($str);
     } 
-    return $array;
+    return $arrayFromFile;
 }
 
 function traverse(): void
 {
-    $row = 0; 
-    while ($row < count(MATRIX) - 1) { 
-        echo(MATRIX[$row] . PHP_EOL);
-        $col = 0; 
-        while ($col < count(MATRIX[$row]) - 1) { 
-            echo(MATRIX[$row][$col] . ' ');
-
-            if (isVowel(MATRIX[$row][$col])) {
-                if (compareAhead($row, $col)) {
-                    $col++;
-                } elseif (compareDown($row, $col)) {
-                    $row++;
-                }
+    for ($row = 0; $row < count(MATRIX); $row++) { 
+        for ($col = 0; $col < count(MATRIX[$row]); $col++) { 
+	    if (isVowel(MATRIX[$row][$col])) {
+		if (findSquare($col, $row, MATRIX[$row][$col])) {
+		    $result[] = findSquare($col, $row, MATRIX[$row][$col]);
+		}
             }
-        }
+	}
     }
+}
+
+function findSquare(int $col, int $row, string $currentLetter): array | false
+{
+    $width = findWidth($row, $col);
+    $heigth = findHeigth($row, $col);
+
+    if ($width > 1 && $heigth > 1) {
+	return [$currentLetter, $col, $row, $width, $heigth]; 
+    }
+    return false;
+}
+
+function findWidth(int $row, int $col): int
+{
+    $width = 0;
+    while (compareAhead($row, $col)) {
+     	$width++;
+    }
+
+    return $width;
+}
+
+function findHeigth(int $row, int $col): int
+{
+    $heigth = 0;
+    while (compareDown($row, $col)) {
+	$heigth++;
+    }
+
+    return $heigth;
 }
 
 function isVowel(string $letter): bool
@@ -37,14 +63,21 @@ function isVowel(string $letter): bool
     return in_array($letter, VOWELS);
 }
 
-function compareAhead(int $row, int $col)
+function compareAhead(int $row, int $col): bool
 {
+    if (!isset(MATRIX[$row][$col + 1])) {
+	return false;
+    }
     return MATRIX[$row][$col] == MATRIX[$row][$col + 1];
 }
 
-function compareDown(int $row, int $col)
+function compareDown(int $row, int $col): bool
 {
+    if (!isset(MATRIX[$row + 1][$col])) {
+	return false;
+    }
     return MATRIX[$row][$col] == MATRIX[$row + 1][$col];
 }
 
 traverse();
+var_dump($results);
