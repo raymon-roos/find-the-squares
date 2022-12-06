@@ -1,50 +1,59 @@
 <?php
 
-define("MATRIX" , convertFileToArray("./input.txt"));
-define("VOWELS" , ["A","E","I","O","U"]);
+declare(strict_types=1);
 
-function convertFileToArray($file)
+define('VOWELS', ['A', 'E', 'I', 'O', 'U']);
+define('MATRIX', array_map(
+	fn ($line) => str_split(strtoupper($line)), // Guarantee each letter is uppercase
+	explode("\n", file_get_contents('./input.txt'))
+));
+
+function printMatrix(): void
 {
-    $array = explode("\n", file_get_contents($file));
-    foreach ($array as $row => $str) {
-        $array[$row] = str_split($str);
-    } 
-    return $array;
+	echo ('  + 0 1 2 3 4 5 6 7 8 9 10 11' . PHP_EOL);
+	foreach (MATRIX as $rowNum => $rowLetters) {
+		// Prefix an empty space if the linenumber has less than two digits
+		echo ((($rowNum < 10) ? ' ' : '') .  $rowNum . ': ' . implode(' ', $rowLetters) . PHP_EOL);
+	}
 }
 
-function traverse(): void
+function traverse(array $matrix = MATRIX)
 {
-    $row = 0; 
-    while ($row < count(MATRIX) - 1) { 
-        echo(MATRIX[$row] . PHP_EOL);
-        $col = 0; 
-        while ($col < count(MATRIX[$row]) - 1) { 
-            echo(MATRIX[$row][$col] . ' ');
-
-            if (isVowel(MATRIX[$row][$col])) {
-                if (compareAhead($row, $col)) {
-                    $col++;
-                } elseif (compareDown($row, $col)) {
-                    $row++;
-                }
-            }
-        }
-    }
+	return array_map('findRepeatedVowelsInRow', $matrix);
 }
 
-function isVowel(string $letter): bool
+function findRepeatedVowelsInRow(array $row): array
 {
-    return in_array($letter, VOWELS);
+	$vowelsFoundInRow = [];
+
+	foreach ($row as $colNum => $letter) {
+		if (
+			compareNextLetter($row, $colNum, $letter) ||  // Checking both forwards and backwards is necessary, otherwise 
+			comparePreviousLetter($row, $colNum, $letter) // the third A in AAAB won't be detected considering A !== B. 
+		) {
+			$vowelsFoundInRow += [$colNum => $letter];
+		}
+	}
+
+	return $vowelsFoundInRow;
 }
 
-function compareAhead(int $row, int $col)
+function comparePreviousLetter(array $row, int $pos, string $letter): bool
 {
-    return MATRIX[$row][$col] == MATRIX[$row][$col + 1];
+	return in_array($letter, VOWELS)
+		&& isset($row[$pos - 1])
+		&& $letter === $row[$pos - 1];
 }
 
-function compareDown(int $row, int $col)
+function compareNextLetter(array $row, int $pos, string $letter): bool
 {
-    return MATRIX[$row][$col] == MATRIX[$row + 1][$col];
+	return in_array($letter, VOWELS)
+		&& isset($row[$pos + 1])
+		&& $letter === $row[$pos + 1];
 }
 
-traverse();
+printMatrix();
+echo PHP_EOL;
+print_r(traverse()); // every letter is keyed to its original horizontal coördinate
+echo PHP_EOL;
+print_r(array_map('implode', traverse()));
