@@ -2,58 +2,62 @@
 
 declare(strict_types=1);
 
-define('VOWELS', ['A', 'E', 'I', 'O', 'U']);
-define('MATRIX', array_map(
-	fn ($line) => str_split(strtoupper($line)), // Guarantee each letter is uppercase
-	explode("\n", file_get_contents('./input.txt'))
+define('GRID', array_map(
+	fn ($line) => str_split(strtoupper($line)),
+	file('./input.txt', FILE_IGNORE_NEW_LINES)
 ));
 
-function printMatrix(): void
+function printGrid(array $grid = GRID): void
 {
 	echo ('  + 0 1 2 3 4 5 6 7 8 9 10 11' . PHP_EOL);
-	foreach (MATRIX as $rowNum => $rowLetters) {
-		// Prefix an empty space if the linenumber has less than two digits
-		echo ((($rowNum < 10) ? ' ' : '') .  $rowNum . ': ' . implode(' ', $rowLetters) . PHP_EOL);
-	}
+	array_walk($grid, fn ($rowLetters, $rowNum)
+	=> printf("%2d: %s" . PHP_EOL, $rowNum, implode(' ', $rowLetters)));
 }
 
-function traverse(array $matrix = MATRIX)
+function traverse(array $grid = GRID): void
 {
-	return array_map('findRepeatedVowelsInRow', $matrix);
-}
+	foreach ($grid as $y => $row) {
+		foreach ($row as $x => $letter) {
+			$height = $width = 1;
 
-function findRepeatedVowelsInRow(array $row): array
-{
-	$vowelsFoundInRow = [];
+			while (compareLetter($y, $x + $width, $letter)) {
+				$width++;
+			}
 
-	foreach ($row as $colNum => $letter) {
+			while (compareLetter($y + $height, $x, $letter)) {
+				$height++;
+			}
+		}
+
 		if (
-			compareNextLetter($row, $colNum, $letter) ||  // Checking both forwards and backwards is necessary, otherwise 
-			comparePreviousLetter($row, $colNum, $letter) // the third A in AAAB won't be detected considering A !== B. 
+			$width > 1
+			/* && $height > 1 */
 		) {
-			$vowelsFoundInRow += [$colNum => $letter];
+			echo ("{$grid[$y][$x]} ($x, $y) -> {$width}x{$width}" . PHP_EOL);
 		}
 	}
-
-	return $vowelsFoundInRow;
 }
 
-function comparePreviousLetter(array $row, int $pos, string $letter): bool
+function findRepeatedVowelsInRow(array $rowLetters, int $y)
 {
-	return in_array($letter, VOWELS)
-		&& isset($row[$pos - 1])
-		&& $letter === $row[$pos - 1];
+	foreach ($rowLetters as $x => $letter) {
+		$width = 1;
+		while (compareLetter($rowLetters, $x + $width - 2, $letter)) {
+			$width++;
+		}
+		if ($width > 1) {
+			printf('%s (%d, %d) -> %dx%d' . PHP_EOL, $letter, $x, $y, $width, 0);
+		}
+	}
 }
 
-function compareNextLetter(array $row, int $pos, string $letter): bool
+function compareLetter(int $x, int $y, string $letter, array $grid = GRID): bool
 {
-	return in_array($letter, VOWELS)
-		&& isset($row[$pos + 1])
-		&& $letter === $row[$pos + 1];
+	return in_array($letter, ['A', 'E', 'I', 'O', 'U'])
+		&& isset($grid[$y][$x])
+		&& $letter === $grid[$y][$x];
 }
 
-printMatrix();
-echo PHP_EOL;
-print_r(traverse()); // every letter is keyed to its original horizontal coördinate
-echo PHP_EOL;
-print_r(array_map('implode', traverse()));
+traverse();
+
+printGrid();
