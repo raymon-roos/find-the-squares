@@ -7,57 +7,74 @@ define('GRID', array_map(
 	file('./input.txt', FILE_IGNORE_NEW_LINES)
 ));
 
+function isVowel(string $letter): bool
+{
+	return in_array($letter, ['A', 'E', 'I', 'O', 'U']);
+}
+
 function printGrid(array $grid = GRID): void
 {
-	echo ('  + 0 1 2 3 4 5 6 7 8 9 10 11' . PHP_EOL);
+	echo '  + 0 1 2 3 4 5 6 7 8 9 10 11' . PHP_EOL;
 	array_walk($grid, fn ($rowLetters, $rowNum)
 	=> printf("%2d: %s" . PHP_EOL, $rowNum, implode(' ', $rowLetters)));
 }
 
-function traverse(array $grid = GRID): void
+function traverse(array $sizeMap = [], array $grid = GRID): array
 {
 	foreach ($grid as $y => $row) {
 		foreach ($row as $x => $letter) {
-			$height = $width = 1;
+			$sizeMap[$y][$x] = $height = $width = 1;
 
-			while (compareLetter($y, $x + $width, $letter)) {
+			while (checkLetter($y, $x + $width, $letter)) {
 				$width++;
 			}
-
-			while (compareLetter($y + $height, $x, $letter)) {
+			while (checkLetter($y + $height, $x, $letter)) {
 				$height++;
 			}
-		}
 
-		if (
-			$width > 1
-			/* && $height > 1 */
-		) {
-			echo ("{$grid[$y][$x]} ($x, $y) -> {$width}x{$width}" . PHP_EOL);
+			$sizeMap[$y][$x] = $width * $height;
+
+			if (($width > 1 && $height > 1 && isVowel($letter))) {
+				echo "$letter ($x, $y) -> {$width}x{$height}"
+					. PHP_EOL;
+			}
 		}
 	}
+	return $sizeMap;
 }
 
-function findRepeatedVowelsInRow(array $rowLetters, int $y)
-{
-	foreach ($rowLetters as $x => $letter) {
-		$width = 1;
-		while (compareLetter($rowLetters, $x + $width - 2, $letter)) {
-			$width++;
-		}
-		if ($width > 1) {
-			printf('%s (%d, %d) -> %dx%d' . PHP_EOL, $letter, $x, $y, $width, 0);
-		}
-	}
-}
-
-function compareLetter(int $x, int $y, string $letter, array $grid = GRID): bool
-{
-	return in_array($letter, ['A', 'E', 'I', 'O', 'U'])
+function checkLetter(
+	int $y,
+	int $x,
+	string $letter,
+	array $grid = GRID
+): bool {
+	return isVowel($letter)
 		&& isset($grid[$y][$x])
 		&& $letter === $grid[$y][$x];
 }
 
-traverse();
+function checkLetters(int $y, int $x, array $grid = GRID)
+{
+	$vowels = [];
+	while (
+		isset($grid[$y][$x]) && isVowel($grid[$y][$x])
+		&& (isset($grid[$y][$x - 1]) && $grid[$y][$x - 1] === $grid[$y][$x]
+		|| isset($grid[$y][$x + 1]) && $grid[$y][$x + 1] === $grid[$y][$x])
+	) {
+		$vowels[] = $grid[$y][$x];
+		$x++;
+	}
 
+	return $vowels;
+}
+
+function dd(...$var)
+{
+	var_dump(...$var);
+	exit();
+}
+
+$sizeMap = traverse();
 printGrid();
+printGrid($sizeMap);
