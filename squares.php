@@ -7,6 +7,71 @@ define('GRID', array_map(
 	file('./input.txt', FILE_IGNORE_NEW_LINES)
 ));
 
+function traverse(): array
+{
+	foreach (GRID as $y => $row) {
+		foreach ($row as $x => $letter) {
+			[
+				'size' => $sizeMap[$y][$x],
+				'width' => $width,
+				'height' => $height
+			] = findRectangleSize($y, $x, $letter);
+
+			if (isOutermostRectangle($y, $x, $sizeMap)) {
+				echo "$letter ($x, $y) -> {$width}x{$height}"
+					. PHP_EOL;
+			}
+		}
+	}
+
+	return $sizeMap;
+}
+
+function findRectangleSize(int $y, int $x, string $letter): array
+{
+	$maxWidth = $width = $repeatedVowels = $height = 0;
+
+	while (checkLetter($y + $height, $x, $letter)) {
+		while (checkLetter($y + $height, $x + $width, $letter)) {
+			$width++;
+			$repeatedVowels++;
+		}
+		if ($width > $maxWidth) {
+			$maxWidth = $width;
+		}
+		$width = 0;
+		$height++;
+	}
+
+	return ['size' => $repeatedVowels, 'width' => $maxWidth, 'height' => $height];
+}
+
+function isOutermostRectangle(int $y, int $x, array $sizeMap,): bool
+{
+	$biggerThenPrevious = $sizeMap[$y][$x] >= 4;
+
+	if (isset($sizeMap[$y][$x - 1])) {
+		$biggerThenPrevious = $biggerThenPrevious && $sizeMap[$y][$x] > $sizeMap[$y][$x - 1];
+	}
+
+	if (isset($sizeMap[$y - 1][$x])) {
+		$biggerThenPrevious = $biggerThenPrevious && $sizeMap[$y][$x] > $sizeMap[$y - 1][$x];
+	}
+
+	if (isset($sizeMap[$y - 1][$x - 1])) {
+		$biggerThenPrevious = $biggerThenPrevious && $sizeMap[$y][$x] > $sizeMap[$y - 1][$x - 1];
+	}
+
+	return $biggerThenPrevious;
+}
+
+function checkLetter(int $y, int $x, string $letter): bool
+{
+	return isVowel($letter)
+		&& isset(GRID[$y][$x])
+		&& $letter === GRID[$y][$x];
+}
+
 function isVowel(string $letter): bool
 {
 	return in_array($letter, ['A', 'E', 'I', 'O', 'U']);
@@ -19,62 +84,11 @@ function printGrid(array $grid = GRID): void
 	=> printf("%2d: %s" . PHP_EOL, $rowNum, implode(' ', $rowLetters)));
 }
 
-function traverse(array $sizeMap = [], array $grid = GRID): array
-{
-	foreach ($grid as $y => $row) {
-		foreach ($row as $x => $letter) {
-			$sizeMap[$y][$x] = $height = $width = 1;
-
-			while (checkLetter($y, $x + $width, $letter)) {
-				$width++;
-			}
-			while (checkLetter($y + $height, $x, $letter)) {
-				$height++;
-			}
-
-			$sizeMap[$y][$x] = $width * $height;
-
-			if (($width > 1 && $height > 1 && isVowel($letter))) {
-				echo "$letter ($x, $y) -> {$width}x{$height}"
-					. PHP_EOL;
-			}
-		}
-	}
-	return $sizeMap;
-}
-
-function checkLetter(
-	int $y,
-	int $x,
-	string $letter,
-	array $grid = GRID
-): bool {
-	return isVowel($letter)
-		&& isset($grid[$y][$x])
-		&& $letter === $grid[$y][$x];
-}
-
-function checkLetters(int $y, int $x, array $grid = GRID)
-{
-	$vowels = [];
-	while (
-		isset($grid[$y][$x]) && isVowel($grid[$y][$x])
-		&& (isset($grid[$y][$x - 1]) && $grid[$y][$x - 1] === $grid[$y][$x]
-		|| isset($grid[$y][$x + 1]) && $grid[$y][$x + 1] === $grid[$y][$x])
-	) {
-		$vowels[] = $grid[$y][$x];
-		$x++;
-	}
-
-	return $vowels;
-}
-
-function dd(...$var)
-{
-	var_dump(...$var);
-	exit();
-}
-
+// Traverse doesn't actually need to return its internal representation of
+// detected rectangles, but I left it in to help elucidate the functioning of
+// this "algorithm"
 $sizeMap = traverse();
-printGrid();
-printGrid($sizeMap);
+
+// Uncomment these to see more of what's going on:
+// printGrid();
+// printGrid($sizeMap);
