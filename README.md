@@ -1,3 +1,72 @@
+## The challenge:
+
+See the following screenshots:
+
+### Level 1
+
+Given an input file containing a grid of letters, find every occurrence of a set of
+adjacent vowels forming a 2×2 square, and print the letter and its origin coordinate – its
+upper left-most corner. 
+
+input:
+```
+HBAAG
+HDAAJ
+EEBFR
+EEFYDT
+```
+
+output:
+```
+Squares detected at:
+A (2, 0)
+E (0, 2)
+```
+
+### Level 2
+
+Given an input file containing a grid of letters, find every occurrence of a set of
+adjacent vowels forming a square of any size, and print the letter and its origin
+coordinate – its upper left-most corner. 
+
+input:
+```
+HBAAGIII
+HDAAJIII
+EEBFRIII
+EEFYDTPV
+```
+
+output:
+```
+Squares detected at:
+A (2, 0) -> 2x2
+I (5, 0) -> 3x3
+E (0, 2) -> 2x2
+```
+
+### Level 3
+
+Given an input file containing a grid of letters, find every occurrence of a set of
+adjacent vowels forming not just a square, but a rectangle of any height and width, and
+print the letter and its origin coordinate – its upper left-most corner. 
+
+input:
+```
+HBAAGIII
+HDAAJIII
+EEEFRIII
+EEEYDIII
+```
+
+output:
+```
+Rectangles detected at:
+A (2, 0) -> 2x2
+I (5, 0) -> 3x4
+E (0, 2) -> 3x2
+```
+
 # A Much required explanation:
 
 First of all, the input file is parsed into a two-dimensional array, representing rows and
@@ -13,13 +82,13 @@ offset.
 Then, for every letter in the grid, `findRectangleSize()` is called, which is passed the
 X and Y coordinates (index into the grid), and the current letter.
 
-`findRectangleSize()` uses `checkLetter()` to determine at every step whether the letter
+`findRectangleSize()` uses `isRepeatedVowel()` to determine at every step whether the letter
 under examination still qualifies as potentially being part of a rectangle of repeated
 vowels. I.e. the letter is a vowel, and identical to the other reference letter.
 
 `findRectangleSize()` is responsible for “Looking ahead”, to calculate the number of
 surrounding identical vowels. For this it uses nested while-loops (computational
-complexity is through the roof!). _while_ The current letter is a vowel, and the next
+complexity is through the roof!). _While_ The current letter is a vowel, and the next
 letter in the same row is identical, increase the row offset (`$width`). When arriving at
 the end of a set of repeated vowels in a row, proceed to the next row, jumping back to the
 same point in the row as where it started in the previous row.
@@ -31,11 +100,11 @@ limitation of this script!).
 
 I admit it's a little hard to follow how the information gathered by `findRectangleSize()`
 is used. Basically, I used an array to make it have multiple return values, and then
-immediately destructure that array. The first value (`size`) is stored in another
-two-dimensional array (`$sizeMap`) that mirrors the geometry of the input grid. This size
+immediately unpack that array. The first value (`size`) is stored in another
+two-dimensional array (`$sizeMap`) that is the same shape as the input grid. This `size`
 is the counter for the amount of repeated vowels encountered in the current rectangle. The
 other values, `$width` and `$height` are only used when printing the final result, if the
-current square is indeed a valid match.
+current rectangle is indeed a valid match.
 
 Basically, `$sizeMap` is a sort of map, where for every position in the map, it stores the
 number of surrounding identical vowels. So the top left corner of a 3×3 rectangle holds
@@ -44,11 +113,11 @@ because it is the top left position of a 3×2 rectangle that is contained in the
 rectangle. You can uncomment the line `printGrid($sizeMap)` to see what it looks like.
 
 This information is tracked in order to only print out the largest surrounding rectangles.
-For this `isOutermostRectangle()` is used, which contains a neat bit of boolean algebra.
+For this `isOutermostRectangle()` is used, which contains a neat bit of boolean logic.
 `$biggerThenPrevious` at every point is only ever true or false. Additional comparisons
-are only added (note the `&&`), if a previous position in the `$sizeMap` exists to compare
-against. I really wish there was a prettier way to guard against out-of-bound array
-offsets, but the null-coalescing operator (`??`) doesn't work for nested array offsets…
+are only added if a previous position in the `$sizeMap` exists to compare against.
+I really wish there was a prettier way to guard against out-of-bound array offsets, but
+the null-coalescing operator (`??`) doesn't work for nested array offsets…
 
 `$sizeMap` is filled with sizes _by looking ahead_, so the top-left point of a rectangle
 will always have the largest size value. We can identify the outermost rectangle then, by
@@ -62,15 +131,19 @@ rectangle, its letter and dimensions are printed to the console.
 
 # Problems
 
-Performance: This solution would require a lot of memory for large inputs, not to mention
+### Performance
+
+This solution would require a lot of memory for large inputs, not to mention
 the quadruple nested loops. Though it only finishes the inner two loops only in case there
 is an actual rectangle at that location. 
 An improvement would be if it could skip ahead in the grid using the bounds of a detected
 square, so it wouldn't be repeating so much work. 
 
-It does not actually detect rectangles! Only squares! The problem is in how “rectangles”
-are tested for validity, using the `$maxwidth` value. I wanted to avoid false positives
-for patterns like this : 
+### Detecting valid rectangles inside larger, asymmetric shapes
+
+Currently, rectangles are
+tested for validity, using the `$maxwidth` value. I wanted to avoid false positives for
+patterns like this: 
 ```
 A A A A A
 A X X X X
@@ -78,10 +151,11 @@ A X X X X
 A X X X X
 A X X X X
 ```
-where the inner surface of the rectangle isn't actually populated with vowels. For this
+Where the inner surface of the rectangle isn't actually populated with vowels. For this
 I chose traverse the entire content of the rectangle, going line by line. In order to go
 left-to-right in every row, I had to reset the X-offset. But I also had to know the width
-of rectangle. I used `$maxWidth` for that, which is pretty arbitrary.
+of rectangle. So I stored the value of the largest number of repeated vowels in
+a particular row and used that as the width of the rectangle.
 
 This means the following pattern: 
 ```
@@ -93,11 +167,10 @@ A A A X X
 A A X X X
 ```
 
-Would have a size of 15 at the top-left position. But obviously there is no rectangle with
-that size there, so I added a check to see whether the size matches the geometry. I.e.
-whether `$width * $height === $size`. However, because `$width` is actually `$maxWidth`,
-it holds the value 4 in this case, because that was the largest width in this area. But
-though there isn't a rectangle with that width, there **is** a 5×2 rectangle that isn't
+Would have a size of 15 at the top-left position, because that's the number of directly
+adjacent A's. But obviously there is no rectangle with that size there, because the
+geometry doesn't like up.
+Though there isn't a rectangle with that width, there **is** a 5×2 rectangle that isn't
 being picked up on now. For that, the logic for detecting the largest possible valid
 rectangle in a given area will have to be a lot more sophisticated, and I have no Idea how
 to approach that…
@@ -117,23 +190,10 @@ be an example of memoization?
 
 I'm a little displeased with how often I'm passing around the same three parameters to
 multiple different functions. I get the impression my use of multiple functions might have
-been too heavy-handed, considering all these functions apparently desire the same state
-and context.
+been too forced, considering all these functions apparently need the same state.
 
 What do you think of this solution? Is it a reasonable approach, or did I altogether miss
 the point? 
-
-## The challenge:
-
-See the following screenshots:
-
-### Level 1
-
-![assignment](jarvis_bit_academy_assignment.png)
-
-### Level 2
-
-![assignment 2](jarvis_bit_academy_assignment_2.png)
 
 ### Further suggestions
 
