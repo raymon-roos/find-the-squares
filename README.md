@@ -1,14 +1,13 @@
 ## The challenge:
 
-See the following screenshots:
-
 ### Level 1
 
 Given an input file containing a grid of letters, find every occurrence of a set of
 adjacent vowels forming a 2×2 square, and print the letter and its origin coordinate – its
-upper left-most corner. 
+upper left-most corner.
 
-input:
+Input:
+
 ```
 HBAAG
 HDAAJ
@@ -16,7 +15,8 @@ EEBFR
 EEFYDT
 ```
 
-output:
+Output:
+
 ```
 Squares detected at:
 A (2, 0)
@@ -27,9 +27,10 @@ E (0, 2)
 
 Given an input file containing a grid of letters, find every occurrence of a set of
 adjacent vowels forming a square of any size, and print the letter and its origin
-coordinate – its upper left-most corner. 
+coordinate – its upper left-most corner.
 
-input:
+Input:
+
 ```
 HBAAGIII
 HDAAJIII
@@ -37,7 +38,8 @@ EEBFRIII
 EEFYDTPV
 ```
 
-output:
+Output:
+
 ```
 Squares detected at:
 A (2, 0) -> 2x2
@@ -49,9 +51,10 @@ E (0, 2) -> 2x2
 
 Given an input file containing a grid of letters, find every occurrence of a set of
 adjacent vowels forming not just a square, but a rectangle of any height and width, and
-print the letter and its origin coordinate – its upper left-most corner. 
+print the letter and its origin coordinate – its upper left-most corner.
 
-input:
+Input:
+
 ```
 HBAAGIII
 HDAAJIII
@@ -59,7 +62,8 @@ EEEFRIII
 EEEYDIII
 ```
 
-output:
+Output:
+
 ```
 Rectangles detected at:
 A (2, 0) -> 2x2
@@ -135,15 +139,16 @@ rectangle, its letter and dimensions are printed to the console.
 
 This solution would require a lot of memory for large inputs, not to mention
 the quadruple nested loops. Though it only finishes the inner two loops only in case there
-is an actual rectangle at that location. 
+is an actual rectangle at that location.
 An improvement would be if it could skip ahead in the grid using the bounds of a detected
-square, so it wouldn't be repeating so much work. 
+square, so it wouldn't be repeating so much work.
 
 ### Detecting valid rectangles inside larger, asymmetric shapes
 
 Currently, rectangles are
 tested for validity, using the `$maxwidth` value. I wanted to avoid false positives for
-patterns like this: 
+patterns like this:
+
 ```
 A A A A A
 A X X X X
@@ -151,13 +156,15 @@ A X X X X
 A X X X X
 A X X X X
 ```
+
 Where the inner surface of the rectangle isn't actually populated with vowels. For this
 I chose traverse the entire content of the rectangle, going line by line. In order to go
 left-to-right in every row, I had to reset the X-offset. But I also had to know the width
 of rectangle. So I stored the value of the largest number of repeated vowels in
 a particular row and used that as the width of the rectangle.
 
-This means the following pattern: 
+This means the following pattern:
+
 ```
 A X X X X
 A A A X X
@@ -186,14 +193,14 @@ and use that as an offset to access the next row.
 
 Could it be that building an entire map of sizes is redundant? It only needs to compare
 against the previous values after all. If it did only store the previous size, would that
-be an example of memoization? 
+be an example of memoization?
 
 I'm a little displeased with how often I'm passing around the same three parameters to
 multiple different functions. I get the impression my use of multiple functions might have
 been too forced, considering all these functions apparently need the same state.
 
 What do you think of this solution? Is it a reasonable approach, or did I altogether miss
-the point? 
+the point?
 
 ### Further suggestions
 
